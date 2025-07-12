@@ -109,7 +109,10 @@ const AdminLogin = () => {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-xs text-muted-foreground">
-            Admin access only. Contact system administrator for credentials.
+            Admin access only. Use default credentials:
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Email: admin@skillswap.com | Password: admin123
           </p>
         </div>
       </div>
