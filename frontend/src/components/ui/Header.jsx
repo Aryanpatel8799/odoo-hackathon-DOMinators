@@ -72,10 +72,10 @@ const Header = () => {
             <Icon name="User" size={17} /> Profile
           </Link>
           <Link 
-            to="/admin-panel-dashboard" 
+            to="/admin-login" 
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
           >
-            <Icon name="Shield" size={17} /> Admin Panel
+            <Icon name="Shield" size={17} /> Admin
           </Link>
         </nav>
 

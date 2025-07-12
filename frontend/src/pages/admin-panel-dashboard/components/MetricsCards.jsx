@@ -1,12 +1,13 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 
-const MetricsCards = () => {
+const MetricsCards = ({ stats }) => {
+  // Use real data if available, otherwise fallback to mock data
   const metrics = [
     {
       title: "Total Users",
-      value: "2,847",
-      change: "+12.5%",
+      value: stats?.users?.total || "0",
+      change: "+0%",
       changeType: "increase",
       icon: "Users",
       color: "bg-primary",
@@ -14,30 +15,30 @@ const MetricsCards = () => {
     },
     {
       title: "Active Swaps",
-      value: "156",
-      change: "+8.2%",
+      value: stats?.swaps?.total || "0",
+      change: "+0%",
       changeType: "increase",
       icon: "ArrowLeftRight",
       color: "bg-success",
       description: "Ongoing skill exchanges"
     },
     {
-      title: "Reported Issues",
-      value: "23",
-      change: "-15.3%",
-      changeType: "decrease",
+      title: "Banned Users",
+      value: stats?.users?.banned || "0",
+      change: "0%",
+      changeType: "neutral",
       icon: "AlertTriangle",
       color: "bg-warning",
-      description: "Pending moderation"
+      description: "Suspended accounts"
     },
     {
-      title: "Growth Rate",
-      value: "18.7%",
-      change: "+3.1%",
+      title: "Completed Swaps",
+      value: stats?.swaps?.completed || "0",
+      change: "+0%",
       changeType: "increase",
       icon: "TrendingUp",
       color: "bg-secondary",
-      description: "Monthly user growth"
+      description: "Successful exchanges"
     }
   ];
 
@@ -54,10 +55,12 @@ const MetricsCards = () => {
               <Icon name={metric.icon} size={24} color="white" />
             </div>
             <div className={`flex items-center space-x-1 text-sm font-medium ${
-              metric.changeType === 'increase' ? 'text-success' : 'text-destructive'
+              metric.changeType === 'increase' ? 'text-success' : 
+              metric.changeType === 'decrease' ? 'text-destructive' : 'text-muted-foreground'
             }`}>
               <Icon 
-                name={metric.changeType === 'increase' ? 'ArrowUp' : 'ArrowDown'} 
+                name={metric.changeType === 'increase' ? 'ArrowUp' : 
+                      metric.changeType === 'decrease' ? 'ArrowDown' : 'Minus'} 
                 size={16} 
               />
               <span>{metric.change}</span>

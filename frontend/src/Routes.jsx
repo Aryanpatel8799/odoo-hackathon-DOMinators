@@ -8,6 +8,8 @@ import UserProfileManagement from "pages/user-profile-management";
 import MessagingSystem from "pages/messaging-system";
 import SwapRequestManagement from "pages/swap-request-management";
 import AdminPanelDashboard from "pages/admin-panel-dashboard";
+import AdminLogin from "pages/admin-login";
+import AdminDashboard from "pages/admin-dashboard";
 import SkillBrowserSearch from "pages/skill-browser-search";
 import  Signin from "pages/o-auth-sign-in/Signin";
 import Signup from "pages/o-auth-sign-up/Signup";
@@ -26,6 +28,8 @@ const Routes = () => {
         <Route path="/messaging-system" element={<MessagingSystem />} />
         <Route path="/swap-request-management" element={<SwapRequestManagement />} />
         <Route path="/admin-panel-dashboard" element={<AdminPanelDashboard />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/skill-browser-search" element={<SkillBrowserSearch />} />
         <Route path="/o-auth-sign-in" element={<Signin />} />
         <Route path="/o-auth-sign-up" element={<Signup />} />

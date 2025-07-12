@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminSidebar from './components/AdminSidebar';
 import MetricsCards from './components/MetricsCards';
 import UserManagementTable from './components/UserManagementTable';
@@ -7,14 +7,87 @@ import NotificationSystem from './components/NotificationSystem';
 import QuickActions from './components/QuickActions';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
+import adminService from '../../services/adminService';
 
 const AdminPanelDashboard = () => {
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [statsResponse, usersResponse] = await Promise.all([
+          adminService.getDashboardStats(),
+          adminService.getAllUsers()
+        ]);
+        
+        setDashboardStats(statsResponse.data);
+        setUsers(usersResponse.data.users || []);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const handleRefreshData = async () => {
+    try {
+      setLoading(true);
+      const [statsResponse, usersResponse] = await Promise.all([
+        adminService.getDashboardStats(),
+        adminService.getAllUsers()
+      ]);
+      
+      setDashboardStats(statsResponse.data);
+      setUsers(usersResponse.data.users || []);
+    } catch (err) {
+      console.error('Error refreshing data:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Icon name="AlertCircle" size={48} className="text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Error Loading Dashboard</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={handleRefreshData} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,8 +104,15 @@ const AdminPanelDashboard = () => {
               <p className="text-sm text-muted-foreground">{currentDate}</p>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" iconName="RefreshCw" iconPosition="left">
-                Refresh Data
+              <Button 
+                variant="outline" 
+                size="sm" 
+                iconName="RefreshCw" 
+                iconPosition="left"
+                onClick={handleRefreshData}
+                disabled={loading}
+              >
+                {loading ? 'Refreshing...' : 'Refresh Data'}
               </Button>
               <Button variant="outline" size="sm" iconName="Download" iconPosition="left">
                 Export Report
@@ -53,7 +133,7 @@ const AdminPanelDashboard = () => {
               <Icon name="BarChart3" size={24} className="text-primary" />
               <h2 className="text-xl font-semibold text-foreground">Platform Overview</h2>
             </div>
-            <MetricsCards />
+            <MetricsCards stats={dashboardStats} />
           </section>
 
           {/* User Management */}
@@ -62,7 +142,7 @@ const AdminPanelDashboard = () => {
               <Icon name="Users" size={24} className="text-primary" />
               <h2 className="text-xl font-semibold text-foreground">User Management</h2>
             </div>
-            <UserManagementTable />
+            <UserManagementTable users={users} onUserUpdate={handleRefreshData} />
           </section>
 
           {/* Analytics and Notifications Grid */}
