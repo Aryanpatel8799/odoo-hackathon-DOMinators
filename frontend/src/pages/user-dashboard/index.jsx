@@ -81,10 +81,10 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-16 lg:pl-60">
-        <div className="p-6 max-w-7xl mx-auto">
+      <main className="pt-16 flex justify-center">
+        <div className="p-6 w-full max-w-5xl mx-auto flex flex-col items-center">
           {/* Welcome Section */}
-          <div className="mb-8">
+          <div className="mb-8 w-full">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-foreground">
@@ -94,7 +94,6 @@ const UserDashboard = () => {
                   {formatDate(currentTime)} • Ready to learn something new today?
                 </p>
               </div>
-              
               <div className="mt-4 sm:mt-0 flex items-center space-x-3">
                 <Link to="/skill-browser-search">
                   <Button
@@ -121,52 +120,27 @@ const UserDashboard = () => {
           </div>
 
           {/* Notification Banners */}
-          <div className="mb-8">
+          <div className="mb-8 w-full">
             <NotificationBanner />
           </div>
 
           {/* Skill Search Bar */}
-          <div className="mb-8">
+          <div className="mb-8 w-full">
             <SkillSearchBar />
           </div>
 
-          {/* Metrics Cards */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-6">Your Overview</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {metricsData.map((metric, index) => (
-                <MetricsCard
-                  key={index}
-                  title={metric.title}
-                  value={metric.value}
-                  icon={metric.icon}
-                  color={metric.color}
-                  trend={metric.trend}
-                  trendValue={metric.trendValue}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-6">Quick Actions</h2>
-            <DashboardQuickActions />
-          </div>
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Activity Feed */}
-            <div className="lg:col-span-2">
+          {/* Dashboard Sections Centered and Stacked */}
+          <div className="flex flex-col items-center w-full space-y-8">
+            {/* Recent Activity */}
+            <div className="w-full">
               <ActivityFeed />
             </div>
-
-            {/* Sidebar Content */}
-            <div className="space-y-8 flex-row">
-              {/* Recommended Matches */}
+            {/* Recommended Matches */}
+            <div className="w-full">
               <RecommendedMatches />
-
-              {/* Quick Stats */}
+            </div>
+            {/* Quick Stats */}
+            <div className="w-full">
               <div className="bg-card border border-border rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Quick Stats</h3>
                 <div className="space-y-4">
@@ -177,7 +151,6 @@ const UserDashboard = () => {
                     </div>
                     <span className="text-sm font-medium text-foreground">47</span>
                   </div>
-                  
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Icon name="BookOpen" size={16} className="text-muted-foreground" />
@@ -185,7 +158,6 @@ const UserDashboard = () => {
                     </div>
                     <span className="text-sm font-medium text-foreground">6</span>
                   </div>
-                  
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Icon name="Target" size={16} className="text-muted-foreground" />
@@ -193,7 +165,6 @@ const UserDashboard = () => {
                     </div>
                     <span className="text-sm font-medium text-foreground">4</span>
                   </div>
-                  
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Icon name="Calendar" size={16} className="text-muted-foreground" />
@@ -203,8 +174,9 @@ const UserDashboard = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Recent Messages Preview */}
+            </div>
+            {/* Recent Messages Preview */}
+            <div className="w-full">
               <div className="bg-card border border-border rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-foreground">Recent Messages</h3>
@@ -215,7 +187,6 @@ const UserDashboard = () => {
                     View All
                   </Link>
                 </div>
-                
                 <div className="space-y-3">
                   {[
                     { name: 'Sarah Chen', message: 'Thanks for the React session!', time: '2m ago', unread: true },
