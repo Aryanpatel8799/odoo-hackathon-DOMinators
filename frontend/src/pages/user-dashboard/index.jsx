@@ -12,9 +12,11 @@ import ActivityFeed from './components/ActivityFeed';
 import SkillSearchBar from './components/SkillSearchBar';
 import RecommendedMatches from './components/RecommendedMatches';
 import NotificationBanner from './components/NotificationBanner';
-
+import { UserDataContext } from '../../context/UserContext';
+import { useContext } from 'react';
 const UserDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { user } = useContext(UserDataContext);
 
   // Update time every minute
   useEffect(() => {
@@ -88,7 +90,7 @@ const UserDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-foreground">
-                  {getGreeting()}, John! 👋
+                  {getGreeting()}, {user.name}! 👋
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   {formatDate(currentTime)} • Ready to learn something new today?
