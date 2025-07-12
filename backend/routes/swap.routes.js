@@ -15,10 +15,10 @@ const router = Router();
 router.use(authMiddleware);
 
 // Create a new swap request
-router.post("/", createSwap);
+router.post("/createSwap", createSwap);
 
 // List all swaps involving current user
-router.get("/", listMySwaps);
+router.get("/listMySwaps", listMySwaps);
 
 // Accept or reject a pending swap
 router.patch("/:id/respond", respondToSwap);
