@@ -4,7 +4,7 @@ import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
 import Button from '../../../components/ui/Button';
 
-const SwapRequestCard = ({ swap, onAccept, onReject, onCounterOffer, onMessage, onComplete, onRate }) => {
+const SwapRequestCard = ({ swap, onAccept, onReject, onCounterOffer, onMessage, onComplete, onRate, onCancel }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getStatusColor = (status) => {
@@ -17,6 +17,8 @@ const SwapRequestCard = ({ swap, onAccept, onReject, onCounterOffer, onMessage, 
         return 'bg-primary/10 text-primary border-primary/20';
       case 'rejected':
         return 'bg-destructive/10 text-destructive border-destructive/20';
+      case 'cancelled':
+        return 'bg-muted/10 text-muted-foreground border-border';
       default:
         return 'bg-muted/10 text-muted-foreground border-border';
     }
@@ -165,25 +167,47 @@ const SwapRequestCard = ({ swap, onAccept, onReject, onCounterOffer, onMessage, 
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onReject(swap.id)}
+                onClick={() => {
+                  console.log('Rejecting swap:', swap.id, 'Direction:', swap.direction, 'Status:', swap.status);
+                  onReject(swap.id);
+                }}
               >
                 Reject
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => onCounterOffer(swap.id)}
+                onClick={() => {
+                  console.log('Counter offering swap:', swap.id, 'Direction:', swap.direction, 'Status:', swap.status);
+                  onCounterOffer(swap.id);
+                }}
               >
                 Counter
               </Button>
               <Button
                 variant="default"
                 size="sm"
-                onClick={() => onAccept(swap.id)}
+                onClick={() => {
+                  console.log('Accepting swap:', swap.id, 'Direction:', swap.direction, 'Status:', swap.status);
+                  onAccept(swap.id);
+                }}
               >
                 Accept
               </Button>
             </>
+          )}
+
+          {swap.status === 'pending' && swap.direction === 'outgoing' && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                console.log('Canceling swap:', swap.id, 'Direction:', swap.direction, 'Status:', swap.status);
+                onCancel(swap.id);
+              }}
+            >
+              Cancel
+            </Button>
           )}
 
           {swap.status === 'accepted' && (

@@ -101,10 +101,16 @@ class UserService {
           profileIMG: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
           location: "San Francisco, CA",
           isPublic: true,
-          skillsOffered: ["JavaScript", "React"],
-          skillsWanted: ["Python", "Data Science"],
+          skillsOffered: [
+            { name: "JavaScript", level: "intermediate", experience: 2, description: "Web development" },
+            { name: "React", level: "advanced", experience: 3, description: "Frontend framework" }
+          ],
+          skillsWanted: [
+            { name: "Python", level: "beginner", priority: "high" },
+            { name: "Data Science", level: "beginner", priority: "medium" }
+          ],
           about: "Passionate developer looking to learn and share skills.",
-          availability: ["weekdays-evening", "weekends"],
+          availability: "available",
           createdAt: new Date().toISOString(),
           stats: {
             completedSwaps: 5,

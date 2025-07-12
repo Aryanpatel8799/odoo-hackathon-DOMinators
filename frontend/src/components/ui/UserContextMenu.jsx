@@ -25,8 +25,18 @@ const UserContextMenu = () => {
     closeMenu();
   };
 
-  const handleLogout = () => {
-    // Clear user data from context and localStorage
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:3000/api/v1/user/logout', {
+        method: 'POST',
+        credentials: 'include', // send cookies
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`,
+        },
+      });
+    } catch (err) {
+      // Ignore errors, just clear local data anyway
+    }
     setUser({
       googleID: '',
       email: '',
@@ -36,7 +46,8 @@ const UserContextMenu = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-    localStorage.removeItem("token"); // Remove old token format if exists
+    localStorage.removeItem("token");
+    window.location.href = "/o-auth-sign-in"; // Optional: redirect to login
     closeMenu();
   };
 

@@ -67,13 +67,15 @@ const FilterSidebar = ({ filters, onFiltersChange, isOpen, onClose }) => {
   };
 
   const sidebarContent = (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">Filters</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
+          <Icon name="Sliders" size={20} className="text-primary" /> Filters
+        </h3>
         <div className="flex items-center space-x-2">
           {getActiveFilterCount() > 0 && (
-            <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+            <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold bg-primary text-primary-foreground rounded-full">
               {getActiveFilterCount()}
             </span>
           )}
@@ -87,65 +89,86 @@ const FilterSidebar = ({ filters, onFiltersChange, isOpen, onClose }) => {
           </Button>
         </div>
       </div>
+      <hr className="border-border" />
 
       {/* Skill Category */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">Skill Category</label>
+      <div className="space-y-2">
+        <label className="text-base font-semibold text-foreground flex items-center gap-2">
+          <Icon name="Layers" size={16} className="text-muted-foreground" /> Skill Category
+        </label>
         <Select
           options={skillCategories}
           value={localFilters.category}
           onChange={(value) => handleFilterChange('category', value)}
           placeholder="All Categories"
           searchable
+          className="focus:ring-2 focus:ring-primary rounded-lg hover:bg-blue-50 transition-colors"
         />
       </div>
+      <hr className="border-border" />
 
       {/* Location */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">Location</label>
+      <div className="space-y-2">
+        <label className="text-base font-semibold text-foreground flex items-center gap-2">
+          <Icon name="MapPin" size={16} className="text-muted-foreground" /> Location
+        </label>
         <Select
           options={locationOptions}
           value={localFilters.location}
           onChange={(value) => handleFilterChange('location', value)}
           placeholder="Any Distance"
+          className="focus:ring-2 focus:ring-primary rounded-lg hover:bg-blue-50 transition-colors"
         />
       </div>
+      <hr className="border-border" />
 
       {/* Availability */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">Availability</label>
+      <div className="space-y-2">
+        <label className="text-base font-semibold text-foreground flex items-center gap-2">
+          <Icon name="Clock" size={16} className="text-muted-foreground" /> Availability
+        </label>
         <Select
           options={availabilityOptions}
           value={localFilters.availability}
           onChange={(value) => handleFilterChange('availability', value)}
           placeholder="Any Status"
+          className="focus:ring-2 focus:ring-primary rounded-lg hover:bg-blue-50 transition-colors"
         />
       </div>
+      <hr className="border-border" />
 
       {/* Rating */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">Minimum Rating</label>
+      <div className="space-y-2">
+        <label className="text-base font-semibold text-foreground flex items-center gap-2">
+          <Icon name="Star" size={16} className="text-muted-foreground" /> Minimum Rating
+        </label>
         <Select
           options={ratingOptions}
           value={localFilters.rating}
           onChange={(value) => handleFilterChange('rating', value)}
           placeholder="Any Rating"
+          className="focus:ring-2 focus:ring-primary rounded-lg hover:bg-blue-50 transition-colors"
         />
       </div>
+      <hr className="border-border" />
 
       {/* Additional Filters */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">Additional Options</label>
-        <div className="space-y-3">
+      <div className="space-y-2">
+        <label className="text-base font-semibold text-foreground flex items-center gap-2">
+          <Icon name="Filter" size={16} className="text-muted-foreground" /> Additional Options
+        </label>
+        <div className="space-y-2">
           <Checkbox
-            label="Verified Users Only"
+            label={<span className="flex items-center gap-1"><Icon name="BadgeCheck" size={14} className="text-primary" /> Verified Users Only</span>}
             checked={localFilters.verified}
             onChange={(e) => handleFilterChange('verified', e.target.checked)}
+            className="focus:ring-2 focus:ring-primary rounded-lg hover:bg-blue-50 transition-colors"
           />
           <Checkbox
-            label="Users with Reviews"
+            label={<span className="flex items-center gap-1"><Icon name="MessageSquare" size={14} className="text-primary" /> Users with Reviews</span>}
             checked={localFilters.hasReviews}
             onChange={(e) => handleFilterChange('hasReviews', e.target.checked)}
+            className="focus:ring-2 focus:ring-primary rounded-lg hover:bg-blue-50 transition-colors"
           />
         </div>
       </div>
@@ -153,11 +176,12 @@ const FilterSidebar = ({ filters, onFiltersChange, isOpen, onClose }) => {
       {/* Clear Filters */}
       {getActiveFilterCount() > 0 && (
         <Button
-          variant="outline"
+          variant="destructive"
           onClick={handleClearFilters}
           iconName="X"
           iconPosition="left"
           fullWidth
+          className="mt-6 py-2 text-base font-bold rounded-xl shadow-md hover:bg-destructive/90 transition-all duration-150"
         >
           Clear All Filters
         </Button>
@@ -168,14 +192,16 @@ const FilterSidebar = ({ filters, onFiltersChange, isOpen, onClose }) => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block w-80 bg-card border-r border-border p-6 h-full overflow-y-auto">
+      <div className="hidden lg:block w-80 bg-gradient-to-b from-white via-blue-50 to-white border border-border p-8 h-full overflow-y-auto rounded-3xl shadow-xl sticky top-24 lg:ml-60 relative">
         {sidebarContent}
+        {/* Vertical divider on the right */}
+        <div className="hidden lg:block absolute top-0 right-0 h-full w-px bg-border/70" style={{right: '-1rem'}} />
       </div>
 
       {/* Mobile Bottom Sheet */}
       {isOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-          <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border rounded-t-xl max-h-[80vh] overflow-y-auto">
+          <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border rounded-t-xl max-h-[80vh] overflow-y-auto shadow-lg">
             <div className="p-6">
               {sidebarContent}
             </div>

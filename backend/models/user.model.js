@@ -4,10 +4,12 @@ import jwt from "jsonwebtoken";
 import validator from "validator";            // optional, but handy for URLs
 
 const AVAILABILITY_ENUM = [
-  "weekdays-day",
-  "weekdays-evening",
-  "weekends",
+  "available",
+  "busy", 
+  "away"
 ];
+
+const SKILL_LEVELS = ["beginner", "intermediate", "advanced", "expert"];
 
 const userSchema = new mongoose.Schema(
   {
@@ -42,19 +44,46 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
     skillsOffered: {
-      type: [String],
+      type: [{
+        name: { type: String, required: true },
+        level: { type: String, enum: SKILL_LEVELS, default: "intermediate" },
+        experience: { type: Number, default: 0 }, // years of experience
+        description: { type: String, default: "" }
+      }],
       default: [],
       index: true,
     },
     skillsWanted: {
-      type: [String],
+      type: [{
+        name: { type: String, required: true },
+        level: { type: String, enum: SKILL_LEVELS, default: "beginner" },
+        priority: { type: String, enum: ["low", "medium", "high"], default: "medium" }
+      }],
       default: [],
       index: true,
     },
     availability: {
-      type: [String],
+      type: String,
       enum: AVAILABILITY_ENUM,
-      default: [],
+      default: "available",
+    },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+    },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    lastActive: {
+      type: Date,
+      default: Date.now,
     },
     isPublic: {
       type: Boolean,

@@ -42,22 +42,40 @@ const Header = () => {
         {/* Desktop Navigation - Hidden on mobile */}
         <nav className="hidden lg:flex items-center space-x-8">
           <Link 
-            to="/skill-browser-search" 
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
+            to="/user-dashboard" 
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
           >
-            Browse Skills
+            <Icon name="LayoutDashboard" size={17} /> Dashboard
+          </Link>
+          <Link 
+            to="/skill-browser-search" 
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
+          >
+            <Icon name="Search" size={17} /> Browse Skills
           </Link>
           <Link 
             to="/swap-request-management" 
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
           >
-            My Swaps
+            <Icon name="ArrowLeftRight" size={17} /> My Swaps
           </Link>
           <Link 
             to="/messaging-system" 
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
           >
-            Messages
+            <Icon name="MessageSquare" size={17} /> Messages
+          </Link>
+          <Link 
+            to="/user-profile-management" 
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
+          >
+            <Icon name="User" size={17} /> Profile
+          </Link>
+          <Link 
+            to="/admin-panel-dashboard" 
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
+          >
+            <Icon name="Shield" size={17} /> Admin Panel
           </Link>
         </nav>
 

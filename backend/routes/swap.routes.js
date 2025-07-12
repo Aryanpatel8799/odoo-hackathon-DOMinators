@@ -7,6 +7,7 @@ import {
   listMySwaps,
   respondToSwap,
   cancelSwap,
+  completeSwap,
 } from "../controllers/swap.contollers.js";
 
 const router = Router();
@@ -25,5 +26,8 @@ router.patch("/:id/respond", respondToSwap);
 
 // Cancel a pending swap
 router.delete("/:id", cancelSwap);
+
+// Mark a swap as completed
+router.patch("/:id/complete", completeSwap);
 
 export default router;

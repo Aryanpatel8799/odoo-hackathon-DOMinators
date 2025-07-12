@@ -30,6 +30,14 @@ const EmptyState = ({ type, onCreateRequest }) => {
           actionText: 'Start Learning',
           actionPath: '/skill-browser-search'
         };
+      case 'completed':
+        return {
+          icon: 'CheckCircle',
+          title: 'No Completed Swaps',
+          description: 'You haven\'t completed any skill exchanges yet. Complete your first swap!',
+          actionText: 'View Active Swaps',
+          actionPath: null
+        };
       default:
         return {
           icon: 'ArrowLeftRight',

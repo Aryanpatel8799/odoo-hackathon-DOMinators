@@ -160,14 +160,12 @@ const getCurrentUser = async (req,res) =>{
 const getUserProfile = async (req,res) => {
   try {
     const userId = req.params.userId || req.User?._id;
-    
     // If we have an authenticated user, try to find them in the database
     if (req.User) {
       const user = await userModel
         .findById(req.User._id)
         .select("-refreshToken -__v")
         .lean();
-
       if (user) {
         // Calculate user stats
         const userStats = {
@@ -175,7 +173,6 @@ const getUserProfile = async (req,res) => {
           averageRating: 0,  // This would come from ratings
           reviewCount: 0,    // This would come from ratings
         };
-
         return res
           .status(200)
           .json(new apiResponse(200, "User profile fetched successfully", {
@@ -184,14 +181,12 @@ const getUserProfile = async (req,res) => {
           }));
       }
     }
-    
     // If we have a specific userId parameter, try to find that user
     if (userId && userId !== req.User?._id) {
       const user = await userModel
         .findById(userId)
         .select("-refreshToken -__v")
         .lean();
-
       if (user) {
         // Calculate user stats
         const userStats = {
@@ -199,7 +194,6 @@ const getUserProfile = async (req,res) => {
           averageRating: 0,  // This would come from ratings
           reviewCount: 0,    // This would come from ratings
         };
-
         return res
           .status(200)
           .json(new apiResponse(200, "User profile fetched successfully", {
@@ -208,30 +202,8 @@ const getUserProfile = async (req,res) => {
           }));
       }
     }
-    
-    // For development routes or when no user found, return mock data
-    const mockUser = {
-      _id: 'dev-user-id',
-      name: req.User?.name || 'Test User',
-      email: req.User?.email || 'test@example.com',
-      profileIMG: req.User?.profileIMG || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-      location: 'San Francisco, CA',
-      isPublic: true,
-      skillsOffered: ['JavaScript', 'React'],
-      skillsWanted: ['Python', 'Data Science'],
-      about: 'Passionate developer looking to learn and share skills.',
-      availability: ['weekdays-evening', 'weekends'],
-      createdAt: new Date(),
-      stats: {
-        completedSwaps: 5,
-        averageRating: 4.5,
-        reviewCount: 8
-      }
-    };
-
-    return res
-      .status(200)
-      .json(new apiResponse(200, "User profile fetched successfully", mockUser));
+    // If no user found, return 404
+    return res.status(404).json(new apiResponse(404, "User not found", null));
   } catch (err) {
     throw new apiError("Error fetching user profile", 500, err);
   }
@@ -298,8 +270,36 @@ const updateSkills = async (req, res) => {
     const { skillsOffered, skillsWanted } = req.body;
 
     const $set = {};
-    if (skillsOffered !== undefined) $set.skillsOffered = skillsOffered;
-    if (skillsWanted !== undefined) $set.skillsWanted = skillsWanted;
+    
+    // Convert string skills to object format if needed
+    if (skillsOffered !== undefined) {
+      const formattedSkillsOffered = skillsOffered.map(skill => {
+        if (typeof skill === 'string') {
+          return {
+            name: skill,
+            level: 'intermediate',
+            experience: 0,
+            description: ''
+          };
+        }
+        return skill;
+      });
+      $set.skillsOffered = formattedSkillsOffered;
+    }
+    
+    if (skillsWanted !== undefined) {
+      const formattedSkillsWanted = skillsWanted.map(skill => {
+        if (typeof skill === 'string') {
+          return {
+            name: skill,
+            level: 'beginner',
+            priority: 'medium'
+          };
+        }
+        return skill;
+      });
+      $set.skillsWanted = formattedSkillsWanted;
+    }
 
     if (!Object.keys($set).length)
       throw new apiError("No valid fields supplied", 400);
@@ -362,8 +362,13 @@ const updateAvailability = async (req, res) => {
   try {
     const { availability } = req.body;
 
-    if (!availability || !Array.isArray(availability)) {
-      throw new apiError("Availability must be an array", 400);
+    if (!availability) {
+      throw new apiError("Availability is required", 400);
+    }
+
+    const validAvailabilities = ["available", "busy", "away"];
+    if (!validAvailabilities.includes(availability)) {
+      throw new apiError("Invalid availability status", 400);
     }
 
     // For development routes, simulate successful update
@@ -389,4 +394,128 @@ const updateAvailability = async (req, res) => {
   }
 };
 
-export {createUser,loginUser,getCurrentUser,updateUser,logoutUser,updateSkills,updateAbout,updateAvailability,getUserProfile};
+// Get all users for skill browsing
+const getAllUsers = async (req, res) => {
+  try {
+    if (!req.User || !req.User._id) {
+      return res.status(401).json(new apiResponse(401, "Unauthorized: User not authenticated", { users: [] }));
+    }
+    const { search, availability, verified, rating, sort, page = 1, category } = req.query;
+    const limit = 12;
+    const skip = (page - 1) * limit;
+
+    // Build filter object - exclude current user and banned users
+    const filter = {
+      _id: { $ne: req.User._id }, // Exclude current user
+      isBanned: false,
+      isPublic: true
+    };
+    
+    // Text search across multiple fields
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { "skillsOffered.name": { $regex: search, $options: 'i' } },
+        { "skillsWanted.name": { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Availability filter
+    if (availability && availability !== 'all') {
+      filter.availability = availability;
+    }
+
+    // Verified filter
+    if (verified === 'true') {
+      filter.verified = true;
+    }
+
+    // Rating filter
+    if (rating) {
+      const minRating = parseFloat(rating);
+      filter.averageRating = { $gte: minRating };
+    }
+
+    // Category filter (skill-based)
+    if (category && category !== 'all') {
+      filter.$or = [
+        { "skillsOffered.name": { $regex: category, $options: 'i' } },
+        { "skillsWanted.name": { $regex: category, $options: 'i' } }
+      ];
+    }
+
+    // Build sort object
+    let sortObj = { lastActive: -1 }; // Default sort by activity
+    
+    switch (sort) {
+      case 'rating':
+        sortObj = { averageRating: -1, reviewCount: -1 };
+        break;
+      case 'alphabetical':
+        sortObj = { name: 1 };
+        break;
+      case 'recent':
+        sortObj = { createdAt: -1 };
+        break;
+      case 'relevance':
+        // Keep default sort for relevance
+        break;
+    }
+
+    const users = await userModel
+      .find(filter)
+      .select("name profileIMG location availability skillsOffered skillsWanted verified averageRating reviewCount lastActive")
+      .sort(sortObj)
+      .limit(limit)
+      .skip(skip)
+      .lean();
+
+    // Transform users to match frontend expectations
+    const transformedUsers = users.map(user => {
+      // Combine all skills for display
+      const allSkills = [
+        ...(user.skillsOffered || []).map(skill => ({
+          name: skill.name,
+          level: skill.level || 'intermediate',
+          type: 'offered'
+        })),
+        ...(user.skillsWanted || []).map(skill => ({
+          name: skill.name,
+          level: skill.level || 'beginner',
+          type: 'wanted'
+        }))
+      ];
+
+      return {
+        id: user._id,
+        _id: user._id,
+        name: user.name,
+        avatar: user.profileIMG,
+        location: user.location || 'Location not specified',
+        availability: user.availability || 'available',
+        rating: user.averageRating || 0,
+        reviewCount: user.reviewCount || 0,
+        verified: user.verified || false,
+        skills: allSkills,
+        lastActive: user.lastActive
+      };
+    });
+
+    return res.status(200).json(
+      new apiResponse(200, "Users fetched successfully", {
+        users: transformedUsers,
+        pagination: {
+          page: parseInt(page),
+          limit,
+          total: transformedUsers.length,
+          hasMore: transformedUsers.length === limit
+        }
+      })
+    );
+  } catch (error) {
+    throw new apiError("Failed to fetch users", 500, error);
+  }
+};
+
+export {createUser,loginUser,getCurrentUser,updateUser,logoutUser,updateSkills,updateAbout,updateAvailability,getUserProfile,getAllUsers};

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../../components/ui/Header';
-import Sidebar from '../../components/ui/Sidebar';
 import DashboardQuickActions from '../../components/ui/DashboardQuickActions';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
@@ -81,7 +80,6 @@ const UserDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Sidebar />
       
       <main className="pt-16 lg:pl-60">
         <div className="p-6 max-w-7xl mx-auto">

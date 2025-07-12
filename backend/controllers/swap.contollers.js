@@ -61,7 +61,23 @@ export const listMySwaps = async (req, res) => {
       .populate(SWAP_POPULATE_OPTS)
       .lean();
 
-    return res.status(200).json(new apiResponse(200, "Swaps fetched", swaps));
+    // Add direction information to each swap
+    const swapsWithDirection = swaps.map(swap => {
+      const direction = swap.offeredBy._id === req.User._id ? 'outgoing' : 'incoming';
+      console.log('Swap direction calculation:', {
+        swapId: swap._id,
+        offeredBy: swap.offeredBy._id,
+        requestedFrom: swap.requestedFrom._id,
+        currentUser: req.User._id,
+        direction
+      });
+      return {
+        ...swap,
+        direction
+      };
+    });
+
+    return res.status(200).json(new apiResponse(200, "Swaps fetched", swapsWithDirection));
   } catch (err) {
     throw new apiError("Failed to fetch swaps", 500, err);
   }
@@ -73,6 +89,12 @@ export const respondToSwap = async (req, res) => {
     const { id } = req.params;
     const { action } = req.body;
 
+    console.log('Respond to swap request:', {
+      swapId: id,
+      action,
+      currentUserId: req.User._id
+    });
+
     if (!["accept", "reject"].includes(action)) {
       throw new apiError("Invalid action", 400);
     }
@@ -80,8 +102,22 @@ export const respondToSwap = async (req, res) => {
     const swap = await Swap.findById(id);
     if (!swap) throw new apiError("Swap not found", 404);
 
+    console.log('Swap details:', {
+      swapId: swap._id,
+      offeredBy: swap.offeredBy,
+      requestedFrom: swap.requestedFrom,
+      status: swap.status,
+      currentUser: req.User._id
+    });
+
+    // Only the requestedFrom user can accept/reject the swap
     if (swap.requestedFrom.toString() !== req.User._id.toString()) {
-      throw new apiError("Not authorized", 403);
+      console.log('Authorization failed:', {
+        swapRequestedFrom: swap.requestedFrom.toString(),
+        currentUser: req.User._id.toString(),
+        match: swap.requestedFrom.toString() === req.User._id.toString()
+      });
+      throw new apiError("Not authorized - only the person who was requested from can accept/reject this swap", 403);
     }
 
     if (swap.status !== "pending") {
@@ -121,5 +157,33 @@ export const cancelSwap = async (req, res) => {
     return res.status(200).json(new apiResponse(200, "Swap cancelled", swap));
   } catch (err) {
     throw new apiError("Failed to cancel swap", 500, err);
+  }
+};
+
+// Mark a swap as completed
+export const completeSwap = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const swap = await Swap.findById(id);
+    if (!swap) throw new apiError("Swap not found", 404);
+
+    // Check if user is one of the participants
+    if (swap.offeredBy.toString() !== req.User._id.toString() && 
+        swap.requestedFrom.toString() !== req.User._id.toString()) {
+      throw new apiError("Not authorized", 403);
+    }
+
+    if (swap.status !== "accepted") {
+      throw new apiError("Only accepted swaps can be marked as completed", 400);
+    }
+
+    swap.status = "completed";
+    await swap.save();
+    await swap.populate(SWAP_POPULATE_OPTS);
+
+    return res.status(200).json(new apiResponse(200, "Swap marked as completed", swap));
+  } catch (err) {
+    throw new apiError("Failed to complete swap", 500, err);
   }
 };

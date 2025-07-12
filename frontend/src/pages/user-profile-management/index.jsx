@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import Header from '../../components/ui/Header';
-import Sidebar from '../../components/ui/Sidebar';
 import ProfileHeader from './components/ProfileHeader';
 import SkillsSection from './components/SkillsSection';
 import AboutSection from './components/AboutSection';
@@ -103,6 +102,10 @@ const UserProfileManagement = () => {
         }));
 
         // Update skills
+        console.log('Loading skills from backend:', {
+          skillsOffered: userData.skillsOffered,
+          skillsWanted: userData.skillsWanted
+        });
         setSkillsOffered(userData.skillsOffered || []);
         setSkillsWanted(userData.skillsWanted || []);
         
@@ -181,14 +184,19 @@ const UserProfileManagement = () => {
 
   const handleSkillsUpdate = async (newSkillsOffered, newSkillsWanted) => {
     try {
+      // Ensure we send arrays of objects
+      const formatSkill = (skill) => typeof skill === 'string' ? { name: skill, level: 'intermediate' } : skill;
+      const formattedOffered = (newSkillsOffered || []).map(formatSkill);
+      const formattedWanted = (newSkillsWanted || []).map(formatSkill);
+
       const response = await userService.updateSkills({
-        skillsOffered: newSkillsOffered,
-        skillsWanted: newSkillsWanted
+        skillsOffered: formattedOffered,
+        skillsWanted: formattedWanted
       });
 
       if (response.success) {
-        setSkillsOffered(newSkillsOffered);
-        setSkillsWanted(newSkillsWanted);
+        setSkillsOffered(formattedOffered);
+        setSkillsWanted(formattedWanted);
         setHasUnsavedChanges(false);
         showNotification("Skills updated successfully!", "success");
       }
@@ -246,7 +254,6 @@ const UserProfileManagement = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <Sidebar />
         <main className="lg:pl-60 pt-16">
           <div className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="max-w-6xl mx-auto">
@@ -267,7 +274,6 @@ const UserProfileManagement = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <Sidebar />
         <main className="lg:pl-60 pt-16">
           <div className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="max-w-6xl mx-auto">
@@ -294,7 +300,6 @@ const UserProfileManagement = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Sidebar />
       
       {/* Backend Status Indicator */}
       {backendStatus === 'disconnected' && (

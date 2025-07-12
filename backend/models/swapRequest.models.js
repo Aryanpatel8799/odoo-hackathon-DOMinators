@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const STATUS = ["pending", "accepted", "rejected", "cancelled"];
+const STATUS = ["pending", "accepted", "rejected", "cancelled", "completed"];
 
 const swapRequestSchema = new mongoose.Schema(
   {

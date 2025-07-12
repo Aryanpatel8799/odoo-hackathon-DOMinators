@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Header from '../../components/ui/Header';
-import Sidebar from '../../components/ui/Sidebar';
 import ConversationList from './components/ConversationList';
 import ChatWindow from './components/ChatWindow';
 import EmojiPicker from './components/EmojiPicker';
@@ -254,7 +253,6 @@ const MessagingSystem = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex pt-16">
-        <Sidebar />
         
         <main className="flex-1 h-screen overflow-hidden">
           <motion.div

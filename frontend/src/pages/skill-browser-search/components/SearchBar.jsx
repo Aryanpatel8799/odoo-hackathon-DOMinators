@@ -26,9 +26,11 @@ const SearchBar = ({ searchQuery, onSearchChange, onSearch }) => {
     "Yoga Instruction"
   ];
 
+  // Defensive: always treat searchQuery as a string
+  const safeQuery = typeof searchQuery === 'string' ? searchQuery : '';
   const filteredSuggestions = suggestions.filter(skill =>
-    skill.toLowerCase().includes(searchQuery.toLowerCase()) && 
-    skill.toLowerCase() !== searchQuery.toLowerCase()
+    typeof skill === 'string' && skill.toLowerCase().includes(safeQuery.toLowerCase()) && 
+    skill.toLowerCase() !== safeQuery.toLowerCase()
   ).slice(0, 5);
 
   const handleInputFocus = () => {

@@ -11,7 +11,8 @@ const SwapFilters = ({ onFilterChange, activeFilters }) => {
     { value: 'pending', label: 'Pending' },
     { value: 'accepted', label: 'Accepted' },
     { value: 'completed', label: 'Completed' },
-    { value: 'rejected', label: 'Rejected' }
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'cancelled', label: 'Cancelled' }
   ];
 
   const sortOptions = [

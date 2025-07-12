@@ -1,18 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
-import Sidebar from '../../components/ui/Sidebar';
 import SwapRequestCard from './components/SwapRequestCard';
 import SwapFilters from './components/SwapFilters';
 import SwapTabs from './components/SwapTabs';
 import SwapStatsCards from './components/SwapStatsCards';
 import EmptyState from './components/EmptyState';
 import RatingModal from './components/RatingModal';
+import swapService from '../../services/swapService';
+import { SWAP_STATUS } from '../../config';
+import { useToast } from '../../context/ToastContext';
+import { UserDataContext } from '../../context/UserContext';
 
 import Button from '../../components/ui/Button';
 
 const SwapRequestManagement = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
+  const { user: currentUser } = useContext(UserDataContext);
   const [activeTab, setActiveTab] = useState('pending');
   const [filters, setFilters] = useState({
     status: 'all',
@@ -22,119 +27,74 @@ const SwapRequestManagement = () => {
   });
   const [selectedSwap, setSelectedSwap] = useState(null);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [swaps, setSwaps] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Mock data for swap requests
-  const mockSwaps = [
-    {
-      id: 1,
-      participant: {
-        name: "Sarah Chen",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-        location: "San Francisco, CA",
-        isOnline: true
-      },
-      yourSkill: "React Development",
-      yourLevel: "Advanced",
-      theirSkill: "UI/UX Design",
-      theirLevel: "Intermediate",
-      proposedTime: new Date(2025, 6, 15, 14, 0),
-      duration: "2 hours",
-      status: "pending",
-      direction: "incoming",
-      message: `Hi! I'd love to learn React from you. I have 3 years of UI/UX design experience and can teach you modern design principles, Figma workflows, and user research techniques. I'm particularly interested in learning about React hooks and state management.`,
-      createdAt: new Date(2025, 6, 12, 10, 30),
-      category: "programming",
-      rated: false
-    },
-    {
-      id: 2,
-      participant: {
-        name: "Marcus Johnson",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-        location: "Austin, TX",
-        isOnline: false
-      },
-      yourSkill: "Spanish",
-      yourLevel: "Native",
-      theirSkill: "Guitar Playing",
-      theirLevel: "Intermediate",
-      proposedTime: new Date(2025, 6, 18, 19, 0),
-      duration: "1.5 hours",
-      status: "accepted",
-      direction: "outgoing",
-      message: "Looking forward to our language exchange! I can teach you conversational Spanish and help with pronunciation.",
-      createdAt: new Date(2025, 6, 10, 16, 45),
-      category: "languages",
-      rated: false
-    },
-    {
-      id: 3,
-      participant: {
-        name: "Emily Rodriguez",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-        location: "New York, NY",
-        isOnline: true
-      },
-      yourSkill: "Digital Marketing",
-      yourLevel: "Expert",
-      theirSkill: "Photography",
-      theirLevel: "Advanced",
-      proposedTime: new Date(2025, 6, 8, 11, 0),
-      duration: "3 hours",
-      status: "completed",
-      direction: "incoming",
-      message: "I\'d love to learn about SEO and social media marketing strategies. I can teach you portrait photography and photo editing in return.",
-      createdAt: new Date(2025, 6, 5, 9, 15),
-      category: "marketing",
-      rated: false
-    },
-    {
-      id: 4,
-      participant: {
-        name: "David Kim",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-        location: "Seattle, WA",
-        isOnline: true
-      },
-      yourSkill: "Python Programming",
-      yourLevel: "Advanced",
-      theirSkill: "Data Analysis",
-      theirLevel: "Expert",
-      proposedTime: new Date(2025, 6, 20, 13, 30),
-      duration: "2.5 hours",
-      status: "pending",
-      direction: "outgoing",
-      message: "I\'m interested in learning advanced data analysis techniques with pandas and numpy. I can help you with Python web development using Django.",
-      createdAt: new Date(2025, 6, 11, 14, 20),
-      category: "programming",
-      rated: false
-    },
-    {
-      id: 5,
-      participant: {
-        name: "Lisa Thompson",
-        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
-        location: "Chicago, IL",
-        isOnline: false
-      },
-      yourSkill: "Cooking",
-      yourLevel: "Intermediate",
-      theirSkill: "Yoga",
-      theirLevel: "Advanced",
-      proposedTime: new Date(2025, 6, 3, 18, 0),
-      duration: "2 hours",
-      status: "completed",
-      direction: "incoming",
-      message: "I\'d love to learn some healthy cooking techniques and meal prep strategies. I can teach you various yoga poses and meditation techniques.",
-      createdAt: new Date(2025, 5, 28, 12, 0),
-      category: "fitness",
-      rated: true
+  // Load swaps from API
+  const loadSwaps = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await swapService.getMySwaps();
+      console.log('Loaded swaps:', response.data);
+      setSwaps(response.data || []);
+    } catch (err) {
+      console.error('Error loading swaps:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    loadSwaps();
+  }, []);
+
+  // Transform API data to match component expectations
+  const transformSwapData = (swap) => {
+    // The backend now includes direction information
+    const isIncoming = swap.direction === 'incoming';
+    const otherUser = isIncoming ? swap.offeredBy : swap.requestedFrom;
+    
+    console.log('Transforming swap:', {
+      swapId: swap._id,
+      direction: swap.direction,
+      isIncoming,
+      status: swap.status,
+      otherUser: otherUser?.name,
+      offeredBy: swap.offeredBy?.name,
+      requestedFrom: swap.requestedFrom?.name
+    });
+    
+    return {
+      id: swap._id,
+      participant: {
+        name: otherUser.name,
+        avatar: otherUser.profileIMG || otherUser.avatar,
+        location: otherUser.location || 'Location not specified',
+        isOnline: otherUser.availability === 'available'
+      },
+      yourSkill: isIncoming ? swap.wantedSkill : swap.offeredSkill,
+      yourLevel: "Intermediate", // This would need to come from user's skill level
+      theirSkill: isIncoming ? swap.offeredSkill : swap.wantedSkill,
+      theirLevel: "Advanced", // This would need to come from other user's skill level
+      proposedTime: new Date(swap.createdAt),
+      duration: "2 hours", // This could be added to the swap model
+      status: swap.status,
+      direction: isIncoming ? "incoming" : "outgoing",
+      message: swap.message || "No message provided",
+      createdAt: new Date(swap.createdAt),
+      category: "programming", // This could be derived from skills
+      rated: false
+    };
+  };
+
+  const transformedSwaps = swaps.map(transformSwapData);
 
   // Filter and sort swaps based on active tab and filters
   const getFilteredSwaps = () => {
-    let filtered = mockSwaps;
+    let filtered = transformedSwaps;
 
     // Filter by tab
     switch (activeTab) {
@@ -145,7 +105,7 @@ const SwapRequestManagement = () => {
         filtered = filtered.filter(swap => swap.status === 'accepted');
         break;
       case 'history':
-        filtered = filtered.filter(swap => swap.status === 'completed' || swap.status === 'rejected');
+        filtered = filtered.filter(swap => swap.status === 'completed' || swap.status === 'rejected' || swap.status === 'cancelled');
         break;
     }
 
@@ -183,28 +143,41 @@ const SwapRequestManagement = () => {
 
   // Calculate stats
   const stats = {
-    total: mockSwaps.length,
-    pending: mockSwaps.filter(swap => swap.status === 'pending').length,
-    active: mockSwaps.filter(swap => swap.status === 'accepted').length,
-    completed: mockSwaps.filter(swap => swap.status === 'completed').length
+    total: transformedSwaps.length,
+    pending: transformedSwaps.filter(swap => swap.status === 'pending').length,
+    active: transformedSwaps.filter(swap => swap.status === 'accepted').length,
+    completed: transformedSwaps.filter(swap => swap.status === 'completed').length
   };
 
   // Calculate tab counts
   const tabCounts = {
-    pending: mockSwaps.filter(swap => swap.status === 'pending').length,
-    accepted: mockSwaps.filter(swap => swap.status === 'accepted').length,
-    history: mockSwaps.filter(swap => swap.status === 'completed' || swap.status === 'rejected').length
+    pending: transformedSwaps.filter(swap => swap.status === 'pending').length,
+    accepted: transformedSwaps.filter(swap => swap.status === 'accepted').length,
+    history: transformedSwaps.filter(swap => swap.status === 'completed' || swap.status === 'rejected' || swap.status === 'cancelled').length
   };
 
   // Event handlers
-  const handleAcceptSwap = (swapId) => {
+  const handleAcceptSwap = async (swapId) => {
     console.log('Accepting swap:', swapId);
-    // Implementation would update swap status to 'accepted'
+    try {
+      await swapService.acceptSwap(swapId);
+      await loadSwaps(); // Reload swaps after action
+      showSuccess('Swap request accepted successfully!');
+    } catch (error) {
+      console.error('Error accepting swap:', error);
+      showError(error.message || 'Failed to accept swap request');
+    }
   };
 
-  const handleRejectSwap = (swapId) => {
-    console.log('Rejecting swap:', swapId);
-    // Implementation would update swap status to 'rejected'
+  const handleRejectSwap = async (swapId) => {
+    try {
+      await swapService.rejectSwap(swapId);
+      await loadSwaps(); // Reload swaps after action
+      showSuccess('Swap request rejected');
+    } catch (error) {
+      console.error('Error rejecting swap:', error);
+      showError(error.message || 'Failed to reject swap request');
+    }
   };
 
   const handleCounterOffer = (swapId) => {
@@ -217,15 +190,32 @@ const SwapRequestManagement = () => {
     navigate('/messaging-system');
   };
 
-  const handleCompleteSwap = (swapId) => {
-    console.log('Completing swap:', swapId);
-    // Implementation would update swap status to 'completed'
+  const handleCompleteSwap = async (swapId) => {
+    try {
+      await swapService.completeSwap(swapId);
+      await loadSwaps(); // Reload swaps after action
+      showSuccess('Swap marked as completed successfully!');
+    } catch (error) {
+      console.error('Error completing swap:', error);
+      showError(error.message || 'Failed to complete swap');
+    }
   };
 
   const handleRateSwap = (swapId) => {
-    const swap = mockSwaps.find(s => s.id === swapId);
+    const swap = transformedSwaps.find(s => s.id === swapId);
     setSelectedSwap(swap);
     setIsRatingModalOpen(true);
+  };
+
+  const handleCancelSwap = async (swapId) => {
+    try {
+      await swapService.cancelSwap(swapId);
+      await loadSwaps(); // Reload swaps after action
+      showSuccess('Swap request cancelled successfully');
+    } catch (error) {
+      console.error('Error canceling swap:', error);
+      showError(error.message || 'Failed to cancel swap request');
+    }
   };
 
   const handleSubmitRating = async (ratingData) => {
@@ -248,7 +238,6 @@ const SwapRequestManagement = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Sidebar />
       
       <main className="lg:pl-60 pt-16">
         <div className="p-6">
@@ -300,6 +289,7 @@ const SwapRequestManagement = () => {
                   onMessage={handleMessage}
                   onComplete={handleCompleteSwap}
                   onRate={handleRateSwap}
+                  onCancel={handleCancelSwap}
                 />
               ))}
             </div>
