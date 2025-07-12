@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
+import UserContextMenu from './UserContextMenu';
+import { UserDataContext } from '../../context/UserContext';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useContext(UserDataContext);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  const isAuthenticated = user && user.email;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border">
@@ -56,33 +61,41 @@ const Header = () => {
           </Link>
         </nav>
 
-        {/* Authentication Buttons */}
+        {/* Authentication Section */}
         <div className="flex items-center space-x-3">
-          {/* Sign In Button */}
-          <Link  to="/o-auth-sign-in">
-          <button className="hidden sm:inline-flex items-center px-4 py-2 rounded-full border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm font-medium">
-            Sign In
-          </button>
-          </Link>
-          
-          {/* Sign Up Button */}
-           <Link  to="/o-auth-sign-up">
-          <button className="hidden sm:inline-flex items-center px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm font-medium">
-            Sign Up
-          </button>
-           </Link>
+          {isAuthenticated ? (
+            // Show user profile when authenticated
+            <UserContextMenu />
+          ) : (
+            // Show login/signup buttons when not authenticated
+            <>
+              {/* Sign In Button */}
+              <Link to="/o-auth-sign-in">
+                <button className="hidden sm:inline-flex items-center px-4 py-2 rounded-full border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm font-medium">
+                  Sign In
+                </button>
+              </Link>
+              
+              {/* Sign Up Button */}
+              <Link to="/o-auth-sign-up">
+                <button className="hidden sm:inline-flex items-center px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm font-medium">
+                  Sign Up
+                </button>
+              </Link>
 
-          {/* Mobile Authentication Menu */}
-          <div className="sm:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleMobileMenu}
-              className="text-blue-600"
-            >
-              <Icon name="User" size={20} />
-            </Button>
-          </div>
+              {/* Mobile Authentication Menu */}
+              <div className="sm:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleMobileMenu}
+                  className="text-blue-600"
+                >
+                  <Icon name="User" size={20} />
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -126,22 +139,28 @@ const Header = () => {
               <span className="font-medium">Messages</span>
             </Link>
 
-            {/* Mobile Authentication Buttons */}
-            <div className="border-t border-border pt-4 space-y-3">
-              <button 
-                className="flex items-center justify-center w-full px-4 py-3 rounded-full border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 transition-all duration-300 ease-in-out font-medium"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Sign In
-              </button>
-              
-              <button 
-                className="flex items-center justify-center w-full px-4 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 ease-in-out font-medium"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Sign Up
-              </button>
-            </div>
+            {/* Mobile Authentication Buttons - Only show when not authenticated */}
+            {!isAuthenticated && (
+              <div className="border-t border-border pt-4 space-y-3">
+                <Link to="/o-auth-sign-in">
+                  <button 
+                    className="flex items-center justify-center w-full px-4 py-3 rounded-full border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 transition-all duration-300 ease-in-out font-medium"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </button>
+                </Link>
+                
+                <Link to="/o-auth-sign-up">
+                  <button 
+                    className="flex items-center justify-center w-full px-4 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 ease-in-out font-medium"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign Up
+                  </button>
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
       )}

@@ -29,8 +29,24 @@ const SkillsSection = ({ skillsOffered, skillsWanted, onSkillsUpdate }) => {
     "French", "Piano", "Yoga", "Public Speaking", "Excel", "Photoshop"
   ];
 
+  // Convert string skills to object format for display
+  const convertSkillsToObjects = (skills) => {
+    return skills.map((skill, index) => ({
+      id: index,
+      name: skill,
+      category: 'Other', // Default category since backend doesn't store this
+      proficiency: 'Intermediate' // Default proficiency since backend doesn't store this
+    }));
+  };
+
+  // Convert object skills back to strings for backend
+  const convertSkillsToStrings = (skills) => {
+    return skills.map(skill => skill.name);
+  };
+
   const getCurrentSkills = () => {
-    return activeTab === 'offered' ? skillsOffered : skillsWanted;
+    const skills = activeTab === 'offered' ? skillsOffered : skillsWanted;
+    return convertSkillsToObjects(skills);
   };
 
   const getProficiencyColor = (proficiency) => {
@@ -48,9 +64,13 @@ const SkillsSection = ({ skillsOffered, skillsWanted, onSkillsUpdate }) => {
       };
 
       if (activeTab === 'offered') {
-        onSkillsUpdate([...skillsOffered, skillToAdd], skillsWanted);
+        const updatedSkillsOffered = [...skillsOffered, skillToAdd.name];
+        const updatedSkillsWanted = skillsWanted;
+        onSkillsUpdate(updatedSkillsOffered, updatedSkillsWanted);
       } else {
-        onSkillsUpdate(skillsOffered, [...skillsWanted, skillToAdd]);
+        const updatedSkillsOffered = skillsOffered;
+        const updatedSkillsWanted = [...skillsWanted, skillToAdd.name];
+        onSkillsUpdate(updatedSkillsOffered, updatedSkillsWanted);
       }
 
       setNewSkill({ name: '', category: '', proficiency: 'Beginner' });
@@ -60,12 +80,17 @@ const SkillsSection = ({ skillsOffered, skillsWanted, onSkillsUpdate }) => {
   };
 
   const handleRemoveSkill = (skillId) => {
-    if (activeTab === 'offered') {
-      const updatedSkills = skillsOffered.filter(skill => skill.id !== skillId);
-      onSkillsUpdate(updatedSkills, skillsWanted);
-    } else {
-      const updatedSkills = skillsWanted.filter(skill => skill.id !== skillId);
-      onSkillsUpdate(skillsOffered, updatedSkills);
+    const currentSkills = getCurrentSkills();
+    const skillToRemove = currentSkills.find(skill => skill.id === skillId);
+    
+    if (skillToRemove) {
+      if (activeTab === 'offered') {
+        const updatedSkills = skillsOffered.filter(skill => skill !== skillToRemove.name);
+        onSkillsUpdate(updatedSkills, skillsWanted);
+      } else {
+        const updatedSkills = skillsWanted.filter(skill => skill !== skillToRemove.name);
+        onSkillsUpdate(skillsOffered, updatedSkills);
+      }
     }
   };
 

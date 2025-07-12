@@ -31,7 +31,8 @@ const Signin = () => {
      profileIMG:data.profileIMG
   });
         localStorage.setItem("user", JSON.stringify(data));
-        localStorage.setItem("token", res.data.data.refreshToken);
+        localStorage.setItem("accessToken", res.data.data.accessToken);
+        localStorage.setItem("refreshToken", res.data.data.refreshToken);
         console.log("User Info:",user);
         navigate("/");
       }

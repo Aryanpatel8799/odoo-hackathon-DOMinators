@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    about: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     skillsOffered: {
       type: [String],
       default: [],

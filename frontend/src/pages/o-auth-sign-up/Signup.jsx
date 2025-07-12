@@ -2,9 +2,12 @@ import React from 'react';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router-dom';
+import { useContext } from "react";
+import { UserDataContext } from "../../context/UserContext";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { user, setUser } = useContext(UserDataContext);
 
   const handleSignup = async (credentialResponse) => {
     try {
@@ -18,11 +21,20 @@ const Signup = () => {
           withCredentials: true,
         }
       );
-
-      localStorage.setItem('token', res.data.data.refreshToken);
-      console.log('User Info:', res.data.data.User);
-      alert('Signup successful!');
-      navigate('/');
+      if (res.status === 200) {
+        const data = res.data.data.User;
+        setUser({
+     googleID:data.googleID,
+     email:data.email,
+     name:data.name,
+     profileIMG:data.profileIMG
+  });
+        localStorage.setItem("user", JSON.stringify(data));
+        localStorage.setItem("accessToken", res.data.data.accessToken);
+        localStorage.setItem("refreshToken", res.data.data.refreshToken);
+        console.log("User Info:",user);
+        navigate("/");
+      }
     } catch (err) {
       console.error('Signup failed:', err);
     }

@@ -7,14 +7,24 @@ const ProfileHeader = ({ profile, onProfileUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleEdit = () => {
+    setEditedProfile(profile);
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    onProfileUpdate(editedProfile);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await onProfileUpdate(editedProfile);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      // Keep editing mode on error so user can retry
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -32,16 +42,35 @@ const ProfileHeader = ({ profile, onProfileUpdate }) => {
   const handlePhotoUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      // Validate file type and size
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('Image size should be less than 5MB');
+        return;
+      }
+
       setIsUploading(true);
-      // Simulate upload delay
-      setTimeout(() => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          handleInputChange('avatar', e.target.result);
-          setIsUploading(false);
-        };
-        reader.readAsDataURL(file);
-      }, 1500);
+      
+      // Create a File object for the backend
+      const imageFile = new File([file], file.name, { type: file.type });
+      
+      // Update the profile with the file
+      handleInputChange('avatar', imageFile);
+      
+      // Also create a preview URL for immediate display
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setEditedProfile(prev => ({
+          ...prev,
+          avatarPreview: e.target.result
+        }));
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -53,6 +82,14 @@ const ProfileHeader = ({ profile, onProfileUpdate }) => {
     handleInputChange('isPublic', !editedProfile.isPublic);
   };
 
+  // Get the avatar URL to display (preview or original)
+  const getAvatarUrl = () => {
+    if (isEditing && editedProfile.avatarPreview) {
+      return editedProfile.avatarPreview;
+    }
+    return editedProfile.avatar;
+  };
+
   return (
     <div className="bg-card border border-border rounded-lg p-6 mb-6">
       <div className="flex flex-col lg:flex-row lg:items-start gap-6">
@@ -60,9 +97,9 @@ const ProfileHeader = ({ profile, onProfileUpdate }) => {
         <div className="flex flex-col items-center lg:items-start">
           <div className="relative">
             <div className="w-32 h-32 rounded-full overflow-hidden bg-muted border-4 border-background shadow-lg">
-              {editedProfile.avatar ? (
+              {getAvatarUrl() ? (
                 <Image
-                  src={editedProfile.avatar}
+                  src={getAvatarUrl()}
                   alt={editedProfile.name}
                   className="w-full h-full object-cover"
                 />
@@ -104,11 +141,11 @@ const ProfileHeader = ({ profile, onProfileUpdate }) => {
               </Button>
             ) : (
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleCancel}>
+                <Button variant="outline" size="sm" onClick={handleCancel} disabled={isSaving}>
                   Cancel
                 </Button>
-                <Button variant="default" size="sm" onClick={handleSave}>
-                  Save
+                <Button variant="default" size="sm" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             )}
@@ -141,7 +178,7 @@ const ProfileHeader = ({ profile, onProfileUpdate }) => {
                 <h1 className="text-2xl font-bold text-foreground">{editedProfile.name}</h1>
                 <div className="flex items-center text-muted-foreground mt-1">
                   <Icon name="MapPin" size={16} className="mr-1" />
-                  <span>{editedProfile.location}</span>
+                  <span>{editedProfile.location || 'Location not set'}</span>
                 </div>
               </div>
             )}
@@ -160,7 +197,7 @@ const ProfileHeader = ({ profile, onProfileUpdate }) => {
                   />
                 ))}
               </div>
-              <span className="text-foreground font-medium">{editedProfile.rating}</span>
+              <span className="text-foreground font-medium">{editedProfile.rating.toFixed(1)}</span>
               <span className="text-muted-foreground">({editedProfile.reviewCount} reviews)</span>
             </div>
             <div className="text-muted-foreground">
@@ -215,11 +252,11 @@ const ProfileHeader = ({ profile, onProfileUpdate }) => {
               </Button>
             ) : (
               <div className="flex gap-3">
-                <Button variant="outline" onClick={handleCancel}>
+                <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
                   Cancel
                 </Button>
-                <Button variant="default" onClick={handleSave}>
-                  Save Changes
+                <Button variant="default" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>
             )}

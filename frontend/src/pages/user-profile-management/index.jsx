@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import ProfileHeader from './components/ProfileHeader';
@@ -6,160 +6,227 @@ import SkillsSection from './components/SkillsSection';
 import AboutSection from './components/AboutSection';
 import SwapHistorySection from './components/SwapHistorySection';
 import RecentFeedbackSection from './components/RecentFeedbackSection';
+import { UserDataContext } from '../../context/UserContext';
+import userService from '../../services/userService';
 
 const UserProfileManagement = () => {
+  const { user, setUser } = useContext(UserDataContext);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [backendStatus, setBackendStatus] = useState('checking'); // 'checking', 'connected', 'disconnected'
+  
   const [profile, setProfile] = useState({
     id: 1,
-    name: "John Doe",
-    email: "john.doe@example.com",
-    location: "San Francisco, CA",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+    name: user?.name || "User",
+    email: user?.email || "user@example.com",
+    location: "",
+    avatar: user?.profileIMG || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     isAvailable: true,
     isPublic: true,
-    rating: 4.8,
-    reviewCount: 24,
-    completedSwaps: 18,
-    joinedDate: "2023-01-15"
+    rating: 0,
+    reviewCount: 0,
+    completedSwaps: 0,
+    joinedDate: new Date().toISOString().split('T')[0]
   });
 
-  const [skillsOffered, setSkillsOffered] = useState([
-    { id: 1, name: "JavaScript", category: "Programming", proficiency: "Advanced" },
-    { id: 2, name: "React", category: "Programming", proficiency: "Advanced" },
-    { id: 3, name: "UI/UX Design", category: "Design", proficiency: "Intermediate" },
-    { id: 4, name: "Photography", category: "Art", proficiency: "Intermediate" },
-    { id: 5, name: "Spanish", category: "Language", proficiency: "Beginner" }
-  ]);
+  const [skillsOffered, setSkillsOffered] = useState([]);
+  const [skillsWanted, setSkillsWanted] = useState([]);
+  const [about, setAbout] = useState('');
+  const [availability, setAvailability] = useState([]);
 
-  const [skillsWanted, setSkillsWanted] = useState([
-    { id: 6, name: "Python", category: "Programming" },
-    { id: 7, name: "Data Science", category: "Programming" },
-    { id: 8, name: "Guitar", category: "Music" },
-    { id: 9, name: "French", category: "Language" },
-    { id: 10, name: "Cooking", category: "Cooking" }
-  ]);
-
-  const [about, setAbout] = useState(`Passionate software developer with 5+ years of experience in web development. I love sharing knowledge and learning new skills from others in the community.\n\nWhen I'm not coding, you can find me exploring photography, learning new languages, or planning my next travel adventure. I believe in the power of skill exchange to build meaningful connections and grow together as a community.`);
-
-  const [swapHistory] = useState([
-    {
-      id: 1,
-      partner: {
-        name: "Sarah Chen",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face"
-      },
-      skillOffered: "JavaScript",
-      skillReceived: "Python",
-      status: "completed",
-      completedDate: "2024-07-05",
-      duration: "2 hours",
-      format: "Video call",
-      rating: 5,
-      partnerRating: 4,
-      feedback: "John was an excellent teacher! His explanations were clear and he provided great resources for continued learning."
-    },
-    {
-      id: 2,
-      partner: {
-        name: "Mike Rodriguez",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
-      },
-      skillOffered: "React",
-      skillReceived: "Guitar",
-      status: "completed",
-      completedDate: "2024-06-28",
-      duration: "1.5 hours",
-      format: "In-person",
-      rating: 4,
-      partnerRating: 5,
-      feedback: "Great session! John helped me understand React hooks much better."
-    },
-    {
-      id: 3,
-      partner: {
-        name: "Emma Wilson",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face"
-      },
-      skillOffered: "UI/UX Design",
-      skillReceived: "French",
-      status: "completed",
-      completedDate: "2024-06-15",
-      duration: "2.5 hours",
-      format: "Video call",
-      rating: 5,
-      partnerRating: 4,
-      feedback: "John's design insights were incredibly valuable. He helped me improve my portfolio significantly."
-    }
-  ]);
-
-  const [recentFeedback] = useState([
-    {
-      id: 1,
-      reviewer: {
-        name: "Sarah Chen",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face"
-      },
-      skillExchanged: "JavaScript for Python",
-      rating: 5,
-      comment: "John was an excellent teacher! His explanations were clear and he provided great resources for continued learning. Highly recommend!",
-      date: "2024-07-05",
-      tags: ["Patient", "Knowledgeable", "Well-prepared"]
-    },
-    {
-      id: 2,
-      reviewer: {
-        name: "Mike Rodriguez",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
-      },
-      skillExchanged: "React for Guitar",
-      rating: 4,
-      comment: "Great session! John helped me understand React hooks much better. Looking forward to our next exchange.",
-      date: "2024-06-28",
-      tags: ["Helpful", "Experienced"]
-    },
-    {
-      id: 3,
-      reviewer: {
-        name: "Emma Wilson",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face"
-      },
-      skillExchanged: "UI/UX Design for French",
-      rating: 5,
-      comment: "John's design insights were incredibly valuable. He helped me improve my portfolio significantly.",
-      date: "2024-06-15",
-      tags: ["Creative", "Insightful", "Professional"]
-    }
-  ]);
+  const [swapHistory] = useState([]);
+  const [recentFeedback] = useState([]);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveNotification, setShowSaveNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState('success');
 
-  const handleProfileUpdate = (updatedProfile) => {
-    setProfile(updatedProfile);
-    setHasUnsavedChanges(false);
-    showSuccessNotification("Profile updated successfully!");
+  // Check backend status
+  useEffect(() => {
+    const checkBackendStatus = async () => {
+      try {
+        const isConnected = await userService.testBackendConnection();
+        setBackendStatus(isConnected ? 'connected' : 'disconnected');
+      } catch (error) {
+        console.error('Error checking backend status:', error);
+        setBackendStatus('disconnected');
+      }
+    };
+
+    checkBackendStatus();
+  }, []);
+
+  // Initialize profile with real user data from Google login
+  useEffect(() => {
+    if (user && user.email) {
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        name: user.name || "User",
+        email: user.email || "user@example.com",
+        avatar: user.profileIMG || prevProfile.avatar,
+        joinedDate: new Date().toISOString().split('T')[0]
+      }));
+      setDataLoaded(true);
+      setLoading(false);
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Memoized fetch function to prevent unnecessary re-renders
+  const fetchUserProfile = useCallback(async () => {
+    if (!user?.email) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await userService.getUserProfile();
+      
+      if (response.success) {
+        const userData = response.data;
+        
+        // Update profile with real data from backend
+        setProfile(prevProfile => ({
+          ...prevProfile,
+          name: userData.name || user?.name || "User",
+          email: userData.email || user?.email || "user@example.com",
+          location: userData.location || "",
+          avatar: userData.profileIMG || user?.profileIMG || prevProfile.avatar,
+          isPublic: userData.isPublic !== undefined ? userData.isPublic : true,
+          rating: userData.stats?.averageRating || 0,
+          reviewCount: userData.stats?.reviewCount || 0,
+          completedSwaps: userData.stats?.completedSwaps || 0,
+          joinedDate: userData.createdAt ? new Date(userData.createdAt).toISOString().split('T')[0] : prevProfile.joinedDate
+        }));
+
+        // Update skills
+        setSkillsOffered(userData.skillsOffered || []);
+        setSkillsWanted(userData.skillsWanted || []);
+        
+        // Update about section
+        setAbout(userData.about || '');
+        
+        // Update availability
+        setAvailability(userData.availability || []);
+
+        // Update user context with fresh data
+        if (userData) {
+          setUser(prevUser => ({
+            ...prevUser,
+            name: userData.name,
+            email: userData.email,
+            profileIMG: userData.profileIMG,
+            googleID: userData.googleID
+          }));
+        }
+        
+        setDataLoaded(true);
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+      setError('Failed to load profile data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [user, setUser]);
+
+  // Fetch user profile data on component mount
+  useEffect(() => {
+    if (user?.email && backendStatus === 'connected') {
+      fetchUserProfile();
+    } else if (user?.email) {
+      // If backend is not connected, just use the user data from context
+      setDataLoaded(true);
+      setLoading(false);
+    } else {
+      setLoading(false);
+    }
+  }, [fetchUserProfile, backendStatus]);
+
+  const handleProfileUpdate = async (updatedProfile) => {
+    try {
+      const response = await userService.updateProfile({
+        name: updatedProfile.name,
+        location: updatedProfile.location,
+        isPublic: updatedProfile.isPublic,
+        avatar: updatedProfile.avatar
+      });
+
+      if (response.success) {
+        setProfile(prevProfile => ({
+          ...prevProfile,
+          ...updatedProfile,
+          avatar: response.data.profileIMG || updatedProfile.avatar
+        }));
+        
+        // Update user context
+        setUser(prevUser => ({
+          ...prevUser,
+          name: updatedProfile.name,
+          profileIMG: response.data.profileIMG || prevUser.profileIMG
+        }));
+
+        setHasUnsavedChanges(false);
+        showNotification("Profile updated successfully!", "success");
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      showNotification("Failed to update profile. Please try again.", "error");
+      throw err; // Re-throw to let component handle it
+    }
   };
 
-  const handleSkillsUpdate = (newSkillsOffered, newSkillsWanted) => {
-    setSkillsOffered(newSkillsOffered);
-    setSkillsWanted(newSkillsWanted);
-    setHasUnsavedChanges(false);
-    showSuccessNotification("Skills updated successfully!");
+  const handleSkillsUpdate = async (newSkillsOffered, newSkillsWanted) => {
+    try {
+      const response = await userService.updateSkills({
+        skillsOffered: newSkillsOffered,
+        skillsWanted: newSkillsWanted
+      });
+
+      if (response.success) {
+        setSkillsOffered(newSkillsOffered);
+        setSkillsWanted(newSkillsWanted);
+        setHasUnsavedChanges(false);
+        showNotification("Skills updated successfully!", "success");
+      }
+    } catch (err) {
+      console.error('Error updating skills:', err);
+      showNotification("Failed to update skills. Please try again.", "error");
+      throw err; // Re-throw to let component handle it
+    }
   };
 
-  const handleAboutUpdate = (newAbout) => {
-    setAbout(newAbout);
-    setHasUnsavedChanges(false);
-    showSuccessNotification("About section updated successfully!");
+  const handleAboutUpdate = async (newAbout) => {
+    try {
+      const response = await userService.updateAbout({ about: newAbout });
+
+      if (response.success) {
+        setAbout(newAbout);
+        setHasUnsavedChanges(false);
+        showNotification("About section updated successfully!", "success");
+      }
+    } catch (err) {
+      console.error('Error updating about section:', err);
+      showNotification("Failed to update about section. Please try again.", "error");
+      throw err; // Re-throw to let component handle it
+    }
   };
 
-  const showSuccessNotification = (message) => {
+  const showNotification = (message, type = 'success') => {
+    setNotificationMessage(message);
+    setNotificationType(type);
     setShowSaveNotification(true);
     setTimeout(() => {
       setShowSaveNotification(false);
     }, 3000);
   };
 
-  const averageRating = recentFeedback.reduce((sum, feedback) => sum + feedback.rating, 0) / recentFeedback.length;
+  const averageRating = recentFeedback.length > 0 
+    ? recentFeedback.reduce((sum, feedback) => sum + feedback.rating, 0) / recentFeedback.length 
+    : 0;
 
   // Handle browser navigation warning for unsaved changes
   useEffect(() => {
@@ -174,15 +241,79 @@ const UserProfileManagement = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  // Show loading only if we're actually loading and haven't loaded data yet
+  if (loading && !dataLoaded) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <Sidebar />
+        <main className="lg:pl-60 pt-16">
+          <div className="px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-4 text-muted-foreground">Loading profile...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error && !dataLoaded) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <Sidebar />
+        <main className="lg:pl-60 pt-16">
+          <div className="px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center">
+                <p className="text-destructive">{error}</p>
+                <button 
+                  onClick={() => {
+                    setError(null);
+                    setDataLoaded(false);
+                    fetchUserProfile();
+                  }} 
+                  className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <Sidebar />
       
-      {/* Success Notification */}
+      {/* Backend Status Indicator */}
+      {backendStatus === 'disconnected' && (
+        <div className="fixed top-20 left-4 z-50 bg-warning text-warning-foreground px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-warning-foreground rounded-full animate-pulse"></div>
+            <span className="text-sm">Backend disconnected - Using demo mode</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Notification */}
       {showSaveNotification && (
-        <div className="fixed top-20 right-4 z-50 bg-success text-success-foreground px-4 py-2 rounded-lg shadow-lg animate-fade-in">
-          Changes saved successfully!
+        <div className={`fixed top-20 right-4 z-50 px-4 py-2 rounded-lg shadow-lg animate-fade-in ${
+          notificationType === 'success' 
+            ? 'bg-success text-success-foreground' 
+            : 'bg-destructive text-destructive-foreground'
+        }`}>
+          {notificationMessage}
         </div>
       )}
 
@@ -196,6 +327,13 @@ const UserProfileManagement = () => {
               <p className="text-muted-foreground mt-2">
                 Manage your profile, skills, and showcase your expertise to the community
               </p>
+              {backendStatus === 'disconnected' && (
+                <div className="mt-4 p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                  <p className="text-warning-foreground text-sm">
+                    ⚠️ Backend server is not connected. Changes will be saved locally for demonstration purposes.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Profile Header */}
@@ -246,7 +384,7 @@ const UserProfileManagement = () => {
               </div>
               
               <div className="bg-card border border-border rounded-lg p-6 text-center">
-                <div className="text-2xl font-bold text-primary">{profile.rating}</div>
+                <div className="text-2xl font-bold text-primary">{profile.rating.toFixed(1)}</div>
                 <div className="text-sm text-muted-foreground">Average Rating</div>
               </div>
             </div>

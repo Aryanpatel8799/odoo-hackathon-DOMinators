@@ -1,6 +1,6 @@
 import express from "express"
 import { Router } from "express"
-import { createUser,loginUser,getCurrentUser, updateUser ,logoutUser} from "../controllers/user.controllers.js";
+import { createUser,loginUser,getCurrentUser, updateUser ,logoutUser, updateSkills, updateAbout, updateAvailability, getUserProfile} from "../controllers/user.controllers.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js"
 
@@ -17,7 +17,23 @@ router.route("/updateprofile").patch(authMiddleware,
     updateUser
 )
 
+// New routes for dynamic profile management
+router.route("/updateskills").patch(authMiddleware, updateSkills)
+router.route("/updateabout").patch(authMiddleware, updateAbout)
+router.route("/updateavailability").patch(authMiddleware, updateAvailability)
+router.route("/profile").get(authMiddleware, getUserProfile)
+router.route("/profile/:userId").get(authMiddleware, getUserProfile)
 
-
+// Development routes (no authentication required for testing)
+router.route("/dev/profile").get(getUserProfile)
+router.route("/dev/updateprofile").patch(
+    upload.fields([
+        { name: 'avatar', maxCount: 1 },
+    ]),
+    updateUser
+)
+router.route("/dev/updateskills").patch(updateSkills)
+router.route("/dev/updateabout").patch(updateAbout)
+router.route("/dev/updateavailability").patch(updateAvailability)
 
 export default router

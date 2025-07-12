@@ -6,6 +6,7 @@ import connectToDb from "./db/connectToDB.js";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route.js"
 import swapRouter from "./routes/swap.routes.js"
+import apiError from "./utils/apiError.js"
 const app = express()
 
 //db connection
@@ -24,5 +25,23 @@ connectToDb();
 app.use('/api/v1/user',userRouter)
 app.use('/api/v1/swap',swapRouter)
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  
+  if (err instanceof apiError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      statusCode: err.statusCode
+    });
+  }
+  
+  return res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+    statusCode: 500
+  });
+});
 
 export default app

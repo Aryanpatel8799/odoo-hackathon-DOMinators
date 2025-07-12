@@ -5,14 +5,24 @@ import Button from '../../../components/ui/Button';
 const AboutSection = ({ about, onAboutUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedAbout, setEditedAbout] = useState(about);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleEdit = () => {
+    setEditedAbout(about);
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    onAboutUpdate(editedAbout);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await onAboutUpdate(editedAbout);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving about section:', error);
+      // Keep editing mode on error so user can retry
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -40,11 +50,11 @@ const AboutSection = ({ about, onAboutUpdate }) => {
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleCancel}>
+            <Button variant="outline" size="sm" onClick={handleCancel} disabled={isSaving}>
               Cancel
             </Button>
-            <Button variant="default" size="sm" onClick={handleSave}>
-              Save
+            <Button variant="default" size="sm" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </div>
         )}
@@ -58,6 +68,7 @@ const AboutSection = ({ about, onAboutUpdate }) => {
             placeholder="Tell others about yourself, your interests, and what you're passionate about..."
             className="w-full h-32 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
             maxLength={500}
+            disabled={isSaving}
           />
           <div className="flex justify-between items-center text-sm text-muted-foreground">
             <span>Share your story and what makes you unique</span>

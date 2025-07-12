@@ -1,19 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
+import { UserDataContext } from '../../context/UserContext';
 
 const UserContextMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const menuRef = useRef(null);
-
-  const user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: null,
-    isAdmin: true // This would come from user context/auth
-  };
+  const { user, setUser } = useContext(UserDataContext);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -31,8 +26,17 @@ const UserContextMenu = () => {
   };
 
   const handleLogout = () => {
-    // Logout logic here
-    console.log('Logging out...');
+    // Clear user data from context and localStorage
+    setUser({
+      googleID: '',
+      email: '',
+      name: '',
+      profileIMG: ''
+    });
+    localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token"); // Remove old token format if exists
     closeMenu();
   };
 
@@ -50,6 +54,11 @@ const UserContextMenu = () => {
     };
   }, []);
 
+  // Don't render if no user data
+  if (!user || !user.email) {
+    return null;
+  }
+
   return (
     <div className="relative" ref={menuRef}>
       {/* User Avatar Button */}
@@ -59,11 +68,19 @@ const UserContextMenu = () => {
         onClick={toggleMenu}
         className="flex items-center space-x-2 hover:bg-muted"
       >
-        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-          <Icon name="User" size={16} color="white" />
-        </div>
+        {user.profileIMG ? (
+          <img 
+            src={user.profileIMG} 
+            alt={user.name} 
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+            <Icon name="User" size={16} color="white" />
+          </div>
+        )}
         <div className="hidden md:block text-left">
-          <p className="text-sm font-medium text-foreground">{user.name}</p>
+          <p className="text-sm font-medium text-foreground">{user.name || 'User'}</p>
           <p className="text-xs text-muted-foreground">Online</p>
         </div>
         <Icon 
@@ -79,11 +96,19 @@ const UserContextMenu = () => {
           {/* User Info Header */}
           <div className="px-4 py-3 border-b border-border">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <Icon name="User" size={20} color="white" />
-              </div>
+              {user.profileIMG ? (
+                <img 
+                  src={user.profileIMG} 
+                  alt={user.name} 
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                  <Icon name="User" size={20} color="white" />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                <p className="text-sm font-medium text-foreground truncate">{user.name || 'User'}</p>
                 <p className="text-xs text-muted-foreground truncate">{user.email}</p>
               </div>
               <div className="w-2 h-2 bg-success rounded-full" title="Online" />
