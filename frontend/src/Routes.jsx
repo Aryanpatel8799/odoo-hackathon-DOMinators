@@ -10,6 +10,9 @@ import SwapRequestManagement from "pages/swap-request-management";
 import AdminPanelDashboard from "pages/admin-panel-dashboard";
 import AdminLogin from "pages/admin-login";
 import AdminDashboard from "pages/admin-dashboard";
+import AdminSwapManagement from "pages/admin-swap-management";
+import AdminAnalytics from "pages/admin-analytics";
+import AdminSettings from "pages/admin-settings";
 import SkillBrowserSearch from "pages/skill-browser-search";
 import  Signin from "pages/o-auth-sign-in/Signin";
 import Signup from "pages/o-auth-sign-up/Signup";
@@ -30,6 +33,9 @@ const Routes = () => {
         <Route path="/admin-panel-dashboard" element={<AdminPanelDashboard />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin-swap-management" element={<AdminSwapManagement />} />
+        <Route path="/admin-analytics" element={<AdminAnalytics />} />
+        <Route path="/admin-settings" element={<AdminSettings />} />
         <Route path="/skill-browser-search" element={<SkillBrowserSearch />} />
         <Route path="/o-auth-sign-in" element={<Signin />} />
         <Route path="/o-auth-sign-up" element={<Signup />} />

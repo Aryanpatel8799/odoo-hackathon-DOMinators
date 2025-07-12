@@ -7,14 +7,21 @@ import apiResponse from "../utils/apiResponse.js";
 // Fallback data for testing when MongoDB is not available
 const fallbackData = {
   users: [
-    { _id: '1', name: 'John Doe', email: 'john@example.com', isBanned: false, createdAt: new Date() },
-    { _id: '2', name: 'Jane Smith', email: 'jane@example.com', isBanned: false, createdAt: new Date() },
-    { _id: '3', name: 'Bob Johnson', email: 'bob@example.com', isBanned: true, createdAt: new Date() },
+    { _id: '1', name: 'John Doe', email: 'john@example.com', isBanned: false, createdAt: new Date('2024-01-15') },
+    { _id: '2', name: 'Jane Smith', email: 'jane@example.com', isBanned: false, createdAt: new Date('2024-02-20') },
+    { _id: '3', name: 'Bob Johnson', email: 'bob@example.com', isBanned: true, createdAt: new Date('2024-03-10') },
+    { _id: '4', name: 'Alice Brown', email: 'alice@example.com', isBanned: false, createdAt: new Date('2024-04-05') },
+    { _id: '5', name: 'Charlie Wilson', email: 'charlie@example.com', isBanned: false, createdAt: new Date('2024-05-12') },
+    { _id: '6', name: 'Diana Garcia', email: 'diana@example.com', isBanned: false, createdAt: new Date('2024-06-18') },
+    { _id: '7', name: 'Eve Martinez', email: 'eve@example.com', isBanned: true, createdAt: new Date('2024-07-01') },
+    { _id: '8', name: 'Frank Lee', email: 'frank@example.com', isBanned: false, createdAt: new Date('2024-07-08') },
   ],
   swaps: [
     { _id: '1', status: 'pending', offeredSkill: 'JavaScript', wantedSkill: 'Python', createdAt: new Date() },
     { _id: '2', status: 'accepted', offeredSkill: 'React', wantedSkill: 'Vue', createdAt: new Date() },
     { _id: '3', status: 'completed', offeredSkill: 'Node.js', wantedSkill: 'Django', createdAt: new Date() },
+    { _id: '4', status: 'pending', offeredSkill: 'Java', wantedSkill: 'C#', createdAt: new Date() },
+    { _id: '5', status: 'accepted', offeredSkill: 'PHP', wantedSkill: 'Ruby', createdAt: new Date() },
   ]
 };
 
@@ -248,12 +255,14 @@ export const getAllUsers = async (req, res) => {
       }
 
       users = await User.find(filter)
-        .select("-refreshToken")
+        .select("-refreshToken -password")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit));
 
       totalUsers = await User.countDocuments(filter);
+      
+      console.log(`Found ${users.length} users out of ${totalUsers} total`);
     } catch (dbError) {
       console.log('MongoDB not available, using fallback user data');
       // Use fallback data if MongoDB is not available
@@ -288,6 +297,7 @@ export const getAllUsers = async (req, res) => {
       })
     );
   } catch (error) {
+    console.error('Error fetching users:', error);
     throw new apiError("Failed to fetch users", 500, error);
   }
 };

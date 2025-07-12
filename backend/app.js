@@ -1,5 +1,7 @@
 import express from "express"
 import cors from "cors"
+import dotenv from 'dotenv'
+dotenv.config()
 import connectToDb from "./db/connectToDB.js";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route.js"
@@ -7,6 +9,7 @@ import swapRouter from "./routes/swap.routes.js"
 import adminRouter from "./routes/admin.routes.js"
 import apiError from "./utils/apiError.js"
 const app = express()
+await connectToDb()
 
 //db connection
 
@@ -20,7 +23,6 @@ app.use(express.json({limit:"16kb"}))
 app.use(express.urlencoded({extended:true,limit:"16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
-
 //routes
 app.use('/api/v1/user',userRouter)
 app.use('/api/v1/swap',swapRouter)

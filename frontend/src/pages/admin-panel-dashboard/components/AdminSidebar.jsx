@@ -20,20 +20,20 @@ const AdminSidebar = () => {
       badge: 12
     },
     {
-      label: 'Swap Monitoring',
-      path: '/admin-panel-dashboard',
+      label: 'Swap Management',
+      path: '/admin-swap-management',
       icon: 'ArrowLeftRight',
       badge: 5
     },
     {
-      label: 'Reports & Issues',
-      path: '/admin-panel-dashboard',
-      icon: 'AlertTriangle',
-      badge: 3
+      label: 'Analytics',
+      path: '/admin-analytics',
+      icon: 'BarChart3',
+      badge: null
     },
     {
-      label: 'Platform Settings',
-      path: '/admin-panel-dashboard',
+      label: 'Settings',
+      path: '/admin-settings',
       icon: 'Settings',
       badge: null
     }
